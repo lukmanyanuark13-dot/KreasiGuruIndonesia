@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kreasi Guru Indonesia — Generator Prompt untuk Guru</title>
+<meta name="author" content="Lukman YK">
+<style>
+*{box-sizing:border-box} :root{--bg:#eef4ff;--ink:#17233b;--mut:#5b6b84;--blue:#2563eb;--blue2:#0ea5e9;--card:#fff;--line:#dbe5f3;--soft:#eef6ff}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.55}
+header{background:linear-gradient(135deg,#1d4ed8,#0ea5e9 70%,#22c55e);color:#fff;padding:28px 16px 26px}
+.wrap{max-width:1100px;margin:0 auto;padding:0 16px}
+header h1{margin:0 0 6px;font-size:clamp(26px,4vw,40px);line-height:1.15}
+header p{margin:0;opacity:.95;max-width:820px}
+.topbar{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.topbar input{flex:1;min-width:220px;padding:12px 14px;border:0;border-radius:12px;font-size:16px}
+.btn{border:0;border-radius:12px;padding:11px 16px;font-size:15px;font-weight:700;cursor:pointer;background:var(--blue);color:#fff}
+.btn.secondary{background:#fff;color:#1d4ed8}.btn.green{background:#16a34a}.btn.dark{background:#17233b}
+.btn.small{padding:8px 12px;font-size:14px}.btn:disabled{opacity:.55;cursor:default}
+main{padding:22px 0 40px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 4px 18px rgba(23,35,59,.06);display:flex;flex-direction:column}
+.card h3{margin:8px 0 6px;font-size:19px}.card p{margin:0 0 10px;color:var(--mut)}
+.card ul{margin:0 0 14px;padding-left:20px;color:#334155}.card li{margin:3px 0}
+.icon{font-size:34px}.card .btn{margin-top:auto;align-self:flex-start}
+.panel{background:#fff;border:1px solid var(--line);border-radius:18px;padding:20px;margin-bottom:16px}
+h2{margin:0 0 12px}h3.sec{margin:22px 0 8px;border-top:1px solid var(--line);padding-top:16px}
+label{display:block;font-weight:700;margin:12px 0 4px}input[type=text],select,textarea{width:100%;padding:11px 12px;border:1px solid #cbd5e1;border-radius:11px;font:inherit}
+textarea{min-height:90px;resize:vertical}textarea#output{min-height:300px;background:#f8fafc}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.checks{display:flex;flex-wrap:wrap;gap:8px}.checks label{font-weight:500;margin:0;background:var(--soft);border:1px solid var(--line);padding:8px 11px;border-radius:999px;cursor:pointer}
+.checks input{accent-color:#2563eb}.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.hint{color:var(--mut);font-size:14px}.lib-item{border:1px solid var(--line);border-radius:14px;padding:14px;margin:10px 0}
+.lib-item h4{margin:0 0 4px}.lib-item p{margin:0;color:var(--mut)}
+footer{color:var(--mut);text-align:center;padding:0 16px 30px;font-size:14px}
+.hidden{display:none}
+@media(max-width:640px){.row,.row3{grid-template-columns:1fr}header{padding:22px 14px}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+<h1>🎯 Kreasi Guru Indonesia</h1>
+<p>Generator prompt untuk guru: isi formulir singkat, dapatkan prompt siap tempel ke AI apa pun. Satu file, bisa dibuka offline, tanpa instalasi.</p>
+<div class="topbar">
+<input id="search" type="text" placeholder="Cari prompter… mis. RPP, video, asesmen, game" oninput="filterCards()">
+<button class="btn secondary" onclick="showView('home')">🏠 Beranda</button>
+<button class="btn secondary" onclick="showView('library')">📚 Pustaka Saya (<span id="libCount">0</span>)</button>
+</div></div></header>
+<main class="wrap">
+
+<section id="view-home">
+<p class="hint" id="resultInfo">18 prompter siap pakai. Klik satu kartu, isi identitas pembelajaran, lalu buat promptnya.</p>
+<div class="grid" id="cards"></div>
+</section>
+
+<section id="view-gen" class="hidden">
+<button class="btn secondary small" onclick="showView('home')">← Kembali ke Beranda</button>
+<div class="panel" style="margin-top:12px">
+<h2><span id="gIcon"></span> <span id="gTitle"></span></h2>
+<p id="gDesc" class="hint" style="font-size:16px;color:#334155"></p>
+<h3 class="sec">1. Identitas Pembelajaran</h3>
+<div class="row">
+<div><label>Nama guru (opsional)</label><input id="fGuru" type="text" placeholder="cth. Lukman YK"></div>
+<div><label>Jenjang</label><select id="fJenjang"><option>PAUD</option><option>SD</option><option selected>SMP</option><option>SMA</option><option>SMK</option></select></div>
+</div>
+<div class="row3">
+<div><label>Kelas</label><input id="fKelas" type="text" placeholder="cth. 9"></div>
+<div><label>Fase</label><input id="fFase" type="text" placeholder="cth. D"></div>
+<div><label>Mata pelajaran *</label><input id="fMapel" type="text" placeholder="cth. Matematika"></div>
+</div>
+<div class="row">
+<div><label>Materi pokok *</label><input id="fMateri" type="text" placeholder="cth. Kesebangunan"></div>
+<div><label>Judul</label><input id="fJudul" type="text" placeholder="Judul media / dokumen (opsional)"></div>
+</div>
+<label>Tujuan Pembelajaran (TP) — satu baris satu tujuan</label>
+<textarea id="fTP" placeholder="Tulis 1–4 TP dari CP/ATP atau Panduan Mapel, bukan karangan bebas.&#10;cth. Menentukan syarat dua bangun sebangun"></textarea>
+<label>Karakteristik peserta didik (opsional)</label>
+<input id="fKarakter" type="text" placeholder="cth. Suka game, perlu visual konkret, beragam kecepatan belajar">
+<h3 class="sec">2. Jenis &amp; Pengaturan</h3>
+<label id="vLabel">Jenis</label><select id="fVarian"></select>
+<div class="row">
+<div><label>Jumlah bagian / level / adegan / soal (opsional)</label><input id="fJumlah" type="text" placeholder="cth. 5 level"></div>
+<div><label>Alokasi waktu (opsional)</label><input id="fWaktu" type="text" placeholder="cth. 2 × 40 menit"></div>
+</div>
+<label>Tema, konteks lokal, gaya visual, atau catatan khusus (opsional)</label>
+<textarea id="fCatatan" placeholder="cth. Konteks pasar tradisional; gaya kartun cerah; karakter konsisten di semua bagian"></textarea>
+<label>Dimensi Profil Lulusan yang diupayakan (boleh lebih dari satu)</label>
+<div class="checks" id="dimensi"></div>
+<h3 class="sec">3. Syarat Wajib</h3>
+<p class="hint">Yang dicentang akan ditulis sebagai syarat mutlak di dalam prompt.</p>
+<div class="checks" id="syarat"></div>
+<div class="actions"><button class="btn" onclick="generate()">✨ Buat Prompt</button><button class="btn secondary" onclick="clearForm()">Bersihkan Formulir</button></div>
+</div>
+<div class="panel">
+<h2>✓ Prompt Siap Pakai</h2>
+<p class="hint">Tempel prompt ini ke AI mana pun (Muse, ChatGPT, Gemini, dan lain-lain). Tombol AI di bawah menyalin prompt dulu, lalu membuka situs AI di tab baru — tinggal tempel (Ctrl+V).</p>
+<textarea id="output" placeholder="Prompt akan muncul di sini setelah Anda menekan “Buat Prompt”."></textarea>
+<div class="actions">
+<button class="btn green" onclick="copyPrompt()">📋 Salin Prompt</button>
+<button class="btn" onclick="savePrompt()">💾 Simpan ke Pustaka</button>
+</div>
+<div class="actions">
+<button class="btn dark small" onclick="sendAI('https://chatgpt.com/')">ChatGPT</button>
+<button class="btn dark small" onclick="sendAI('https://gemini.google.com/')">Gemini</button>
+<button class="btn dark small" onclick="sendAI('https://claude.ai/')">Muse</button>
+<button class="btn dark small" onclick="sendAI('https://copilot.microsoft.com/')">Copilot</button>
+<button class="btn dark small" onclick="sendAI('https://www.perplexity.ai/')">Perplexity</button>
+<button class="btn dark small" onclick="sendAI('https://chat.deepseek.com/')">DeepSeek</button>
+</div>
+<p id="copyMsg" class="hint"></p>
+</div>
+</section>
+
+<section id="view-library" class="hidden">
+<div class="panel"><h2>📚 Pustaka Prompt Saya</h2>
+<p class="hint">Prompt yang disimpan hanya tersimpan di perangkat ini (localStorage) — tetap ada walau aplikasi ditutup, dan tidak dikirim ke server mana pun.</p>
+<div id="libList"></div></div>
+</section>
+</main>
+<footer>Disusun oleh Lukman YK • Guru Matematika — Kreasi Guru Indonesia, satu file mandiri tanpa instalasi.</footer>
+<script>
+const DIMENSI=["Keimanan dan Ketakwaan","Kewargaan","Penalaran Kritis","Kreativitas","Kolaborasi","Kemandirian","Kesehatan","Komunikasi"];
+const SYARAT=["Satu file mandiri, online & offline, tanpa instalasi","Responsif HP & tablet (layar kecil, ramah sentuhan)","Optimal di laptop 13–15 inci","Mode layar besar PID/TV: font & tombol membesar, terbaca dari jauh","Diferensiasi: mudah, sedang, menantang","Literasi & numerasi terintegrasi alami bila relevan","Progres tersimpan di perangkat (localStorage)","Hasil bisa dicetak rapi"];
+const TOOLS=[
+{id:"mpi",icon:"🎯",title:"MPI Prompter",desc:"Buat prompt media pembelajaran interaktif: petualangan, game, simulasi, kuis, cerita, komik, dan lainnya.",bullets:["8 jenis MPI & 5 bentuk luaran","Otomatis sesuai usia (PAUD–SMK)","Syarat multi-perangkat: HP, laptop, PID/TV 52 inci"],vlabel:"Jenis MPI",variants:["Petualangan","Game edukasi","Simulasi","Kuis interaktif","Cerita interaktif","Komik digital","Eksplorasi / virtual lab","Video interaktif"],body:"Buatkan media pembelajaran interaktif (MPI) yang lengkap dan siap dipakai di kelas. Strukturkan menjadi beberapa bagian/level yang runtut dari pengenalan konsep, latihan bertahap, sampai tantangan penutup. Sertakan umpan balik langsung untuk jawaban benar dan salah, skor dan progres yang jelas, serta aktivitas yang membuat murid aktif — bukan sekadar membaca teks. Jika ada soal, sertakan kunci jawaban dan pembahasan singkat yang terpisah dari soal."},
+{id:"rpp",icon:"📝",title:"RPP Prompter",desc:"Buat prompt perangkat pembelajaran: RPP lengkap, RPP 1 lembar, Modul Ajar, RPPH & RPL BK.",bullets:["5 jenis dokumen, istilah otomatis (RPPH/RPL)","Berjangkar Permendikdasmen No. 1/2026","8 Dimensi Profil Lulusan"],vlabel:"Jenis dokumen",variants:["RPP lengkap","RPP 1 lembar","Modul Ajar","RPPH (PAUD)","RPL BK"],body:"Buatkan perangkat pembelajaran yang lengkap, runtut, dan siap dipakai guru tanpa banyak penyuntingan. Gunakan struktur resmi: Identifikasi, Desain Pembelajaran, Pengalaman Belajar, dan Asesmen. Tulis kegiatan dengan fase Memahami, Mengaplikasi, dan Merefleksi, cantumkan prinsip Pembelajaran Mendalam pada tiap fase, alokasi waktu per kegiatan, serta asesmen awal, formatif, dan sumatif beserta rubrik dan tindak lanjutnya. Berjangkar pada regulasi yang berlaku (Permendikdasmen No. 1 Tahun 2026) dan jangan mengarang TP di luar CP/ATP yang diberikan."},
+{id:"video",icon:"🎬",title:"Video Prompter",desc:"Buat prompt video pembelajaran per adegan untuk Google Flow, Kling AI, dan lainnya.",bullets:["Naskah per adegan + durasi fleksibel","Karakter dikunci konsisten antaradegan","Konvensi aman filter (tanpa teks, tanpa subtitle)"],vlabel:"Platform / gaya video",variants:["Google Flow / Veo","Kling AI","Video penjelasan guru","Video animasi karakter","Video apersepsi singkat"],body:"Buatkan prompt video pembelajaran per adegan, satu blok prompt untuk satu adegan. Setiap adegan memuat: deskripsi visual yang konkret, aksi dan ekspresi karakter, durasi, serta naskah narasi dalam Bahasa Indonesia. Kunci karakter agar konsisten di semua adegan (ciri fisik, pakaian, warna, dan gaya tetap sama) dan batasi maksimal 2 karakter utama per adegan. Patuhi konvensi aman filter: video tidak menampilkan teks, rumus, atau subtitle — semua tulisan ditambahkan di editor. Sertakan tips khusus platform yang dipilih dan daftar cek konsistensi di akhir."},
+{id:"poster",icon:"🖼️",title:"Poster Prompter",desc:"Buat prompt poster edukasi: konten, layout & ilustrasi siap tempel.",bullets:["7 ukuran: A4–A2, F4, 16:9, 9:16, 1:1","Berjangkar TP + palet warna hex","2 prompt: konten (AI chat) + ilustrasi (AI gambar)"],vlabel:"Ukuran poster",variants:["A4 portrait","A3 portrait","A2 portrait","F4","16:9 landscape","9:16 portrait (ponsel)","1:1 persegi"],body:"Buatkan poster edukasi yang siap cetak dan mudah dibaca dari jarak jauh. Hasilkan DUA prompt terpisah: (1) prompt konten untuk AI chat — judul, pesan utama, poin-poin singkat berjangkar TP, hierarki visual, dan footer; dan (2) prompt ilustrasi untuk AI gambar — deskripsi visual dalam Bahasa Inggris, tanpa teks di dalam gambar, gaya dan palet warna yang konsisten. Tentukan palet warna dalam kode hex, area kosong untuk judul, dan penempatan QR code bila diminta. Pastikan tidak ada informasi yang salah dan tidak ada teks kecil yang sulit dibaca."},
+{id:"asesmen",icon:"🎯",title:"Asesmen Prompter",desc:"Buat prompt kisi-kisi, soal, kunci & rubrik siap tempel.",bullets:["5 jenis: kuis, UH, STS, SAS, diagnostik","Komposisi PG, isian, jodoh, uraian + level C1–C6","Kunci + pembahasan + pedoman penskoran"],vlabel:"Jenis asesmen",variants:["Kuis","Ulangan Harian (UH)","Sumatif Tengah Semester (STS)","Sumatif Akhir Semester (SAS)","Asesmen diagnostik"],body:"Buatkan paket asesmen yang lengkap dan siap pakai: kisi-kisi yang memetakan TP ke indikator soal dan level kognitif C1–C6, naskah soal dengan komposisi soal pilihan ganda, isian, menjodohkan, dan uraian yang seimbang, kunci jawaban dan pembahasan untuk setiap soal, pedoman penskoran, serta rubrik penskoran otomatis untuk soal uraian. Soal harus bervariasi tingkat kesulitannya, tidak ambigu, dan setiap soal terikat jelas pada satu TP."},
+{id:"lkpd",icon:"📄",title:"LKPD Prompter",desc:"Buat prompt LKPD terstruktur per model pembelajaran.",bullets:["5 model: Saintifik 5M, PBL, Discovery, Inkuiri, PjBL","Fase aktivitas otomatis + pertanyaan panduan","Kunci & pedoman skor terpisah, siap cetak A4"],vlabel:"Model pembelajaran",variants:["Saintifik 5M","Problem Based Learning (PBL)","Discovery Learning","Inkuiri","Project Based Learning (PjBL)"],body:"Buatkan LKPD yang terstruktur mengikuti sintaks model yang dipilih, dengan fase aktivitas yang jelas dan pertanyaan panduan di setiap fase. Sertakan identitas LKPD, petunjuk kerja kelompok, ruang jawab yang cukup, dan aktivitas yang menuntun murid menemukan konsep — bukan sekadar mengisi jawaban. Sediakan kunci jawaban dan pedoman skor dalam bagian terpisah yang jelas ditandai untuk guru. Format siap cetak A4, bahasa sesuai jenjang, dan semua tugas terikat pada TP yang diberikan."},
+{id:"deck",icon:"📊",title:"Deck Prompter",desc:"Buat prompt outline presentasi menjadi naskah per slide.",bullets:["Alokasi slide otomatis: pembuka–isi–penutup","Catatan pembicara + saran visual per slide","Momen interaksi tiap 10 menit"],vlabel:"Jenis presentasi",variants:["Workshop","Seminar","Presentasi kelas","Sosialisasi"],body:"Buatkan outline presentasi yang dialokasikan secara proporsional ke pembuka, isi, dan penutup, lalu kembangkan menjadi naskah per slide: judul slide, poin utama (maksimal dan ringkas), naskah pembicara, dan saran visual untuk setiap slide. Sisipkan momen interaksi dengan audiens setiap sekitar 10 menit, serta slide pembuka yang menarik dan slide penutup dengan ajakan atau refleksi. Bahasa lugas, tidak menumpuk teks di slide, dan setiap slide punya satu pesan utama."},
+{id:"bahanajar",icon:"📖",title:"Bahan Ajar Prompter",desc:"Buat prompt bahan ajar per pertemuan ala template terstruktur.",bullets:["Template: Pemantik, Peta Pikiran, Konteks","Materi Dasar → Relasional → Extended Abstract","Eksplorasi 1 & 2, Tantangan Kreatif, Refleksi Karakter"],vlabel:"Fokus bahan ajar",variants:["Satu pertemuan lengkap","Pengantar konsep","Latihan dan pendalaman","Pengayaan"],body:"Buatkan bahan ajar untuk satu pertemuan dengan template: Pemantik (pertanyaan atau fenomena pembuka), Peta Pikiran, Konteks kehidupan nyata, lalu materi yang berjenjang dari Materi Dasar ke Relasional hingga Extended Abstract. Sertakan Eksplorasi 1 dan Eksplorasi 2, Tantangan Kreatif, dan Refleksi Karakter. Pastikan setiap pertemuan punya sudut pandang dan contoh yang berbeda — jangan mengulang bahan pertemuan lain (anti copy-paste antar pertemuan). Berjangkar pada TP, bahasa sesuai jenjang, dan sertakan contoh yang dekat dengan kehidupan murid."},
+{id:"rppasesmen",icon:"🎯",title:"RPP & Asesmen Prompter",desc:"Buat prompt RPP Pembelajaran Mendalam + Asesmen mengikuti contoh resmi Panduan Mapel, dikunci rubrik penilaian.",bullets:["Struktur resmi: Identifikasi → Desain → Pengalaman Belajar → Asesmen","Fase Memahami–Mengaplikasi–Merefleksi + prinsip PM per fase","Asesmen awal, formatif, sumatif + rubrik & tindak lanjut"],vlabel:"Cakupan",variants:["RPP + asesmen satu pertemuan","RPP + asesmen satu bab","RPP lengkap dengan rubrik REV"],body:"Buatkan RPP Pembelajaran Mendalam beserta asesmennya mengikuti struktur resmi contoh Panduan Mapel: Identifikasi, Desain Pembelajaran, Pengalaman Belajar, dan Asesmen. Setiap fase (Memahami, Mengaplikasi, Merefleksi) memuat kegiatan yang menerapkan prinsip Pembelajaran Mendalam secara eksplisit. Sertakan asesmen awal, formatif, dan sumatif, rubrik penilaian yang rinci dan terukur, model pembelajaran per pertemuan yang dipilih secara otomatis sesuai materi, tindak lanjut (pengayaan dan remedial), serta daftar cek kualitas rubrik di akhir agar guru bisa memverifikasi sendiri."},
+{id:"game",icon:"🎮",title:"Game Edukasi Prompter",desc:"Buat prompt dokumen desain game pembelajaran.",bullets:["5 genre: kuis, kartu, puzzle, balapan, simulasi","Struktur level + syarat lulus per level","Mekanik: skor, nyawa, timer, papan peringkat"],vlabel:"Genre game",variants:["Kuis","Kartu","Puzzle","Balapan","Simulasi"],body:"Buatkan dokumen desain game pembelajaran yang lengkap dan bisa langsung dibangun: konsep dan alur permainan, struktur level beserta syarat lulus tiap level, mekanik skor, nyawa, timer, dan papan peringkat, bank soal per level dengan kunci jawaban yang sudah diverifikasi, serta kriteria menang dan kalah. Rancang kesulitan yang menanjak secara bertahap, umpan balik yang mendidik untuk jawaban salah, dan aturan yang adil serta jelas bagi semua pemain."},
+{id:"cerita",icon:"📚",title:"Cerita Anak Prompter",desc:"Buat prompt dongeng bergambar per halaman.",bullets:["2 prompt: naskah (AI chat) + ilustrasi (AI gambar)","7 pilihan nilai moral, karakter konsisten","Batas kata menyesuaikan usia (PAUD/SD)"],vlabel:"Nilai moral utama",variants:["Kejujuran","Tanggung jawab","Tolong-menolong","Disiplin","Peduli lingkungan","Keberanian","Kasih sayang"],body:"Buatkan dongeng bergambar per halaman untuk anak. Hasilkan DUA prompt terpisah: (1) prompt naskah untuk AI chat — cerita per halaman dengan batas kata yang sesuai usia, tokoh yang konsisten, konflik ringan yang terselesaikan, dan akhir yang bahagia tanpa ceramah yang menggurui; dan (2) prompt ilustrasi untuk AI gambar — deskripsi visual tiap halaman dalam Bahasa Inggris, tanpa teks di dalam gambar, gaya dan karakter yang konsisten. Nilai moral yang dipilih harus tampak lewat perbuatan tokoh, bukan lewat nasihat panjang."},
+{id:"sastra",icon:"📖",title:"Sastra Edukasi Prompter",desc:"Buat prompt karya sastra bermuatan pelajaran: cerpen, dongeng, cerita lucu, puisi, pantun.",bullets:["5 jenis: cerpen, dongeng/fabel, cerita lucu, puisi, pantun","Aturan khusus pantun: sampiran, rima, suku kata","Berjangkar TP, batas kata menyesuaikan jenjang"],vlabel:"Jenis karya",variants:["Cerpen","Dongeng / fabel","Cerita lucu","Puisi","Pantun"],body:"Buatkan karya sastra yang bermuatan pelajaran dan sesuai jenjang. Untuk pantun, patuhi aturan khusus: sampiran pada dua baris pertama, isi pada dua baris terakhir, rima akhir yang konsisten, dan jumlah suku kata yang seimbang. Untuk jenis lainnya, jaga alur yang jelas, bahasa yang indah namun mudah dipahami, dan muatan pelajaran yang menyatu dengan cerita — bukan ditempel. Sertakan batas kata yang sesuai jenjang dan catatan singkat tentang nilai atau pelajaran yang terkandung di akhir."},
+{id:"ice",icon:"⚡",title:"Ice Breaking Prompter",desc:"Buat prompt pembuka & penyegar kelas: teka-teki, yel-yel, permainan kilat.",bullets:["5 jenis: teka-teki, tebak-tebakan, yel-yel, permainan, tebak gaya","Menyesuaikan jumlah murid, durasi & level energi","Tanpa hukuman yang mempermalukan"],vlabel:"Jenis ice breaking",variants:["Teka-teki","Tebak-tebakan","Yel-yel","Permainan kilat","Tebak gaya"],body:"Buatkan ice breaking yang singkat, energik, dan mudah dijalankan guru tanpa persiapan rumit. Sesuaikan dengan jumlah murid, durasi yang tersedia, dan level energi yang diinginkan. Sertakan tujuan, alat (bila ada), langkah-langkah yang jelas, dan variasi bila waktu tersisa. Aktivitas harus aman dan menyenangkan untuk semua murid — tanpa hukuman yang mempermalukan, tanpa permainan yang menyingkirkan murid secara permanen, dan tetap terhubung dengan suasana belajar."},
+{id:"paud",icon:"🌈",title:"PAUD Ceria Prompter",desc:"Satu prompt = satu paket tema: cerita bergambar, kartu kosakata, lagu, lembar aktivitas & RPPH singkat.",bullets:["5 komponen paket, bisa dipilih sebagian","Ilustrasi per halaman & kartu (Inggris, tanpa teks)","Lagu anak + gerakan, lembar mewarnai & mencocokkan"],vlabel:"Komponen paket",variants:["Paket lengkap (5 komponen)","Cerita bergambar saja","Kartu kosakata + lagu","Lembar aktivitas + RPPH singkat"],body:"Buatkan satu paket tema PAUD yang utuh dalam satu prompt: cerita bergambar, kartu kosakata, lagu anak beserta gerakan, lembar aktivitas (mewarnai dan mencocokkan), dan RPPH singkat. Bahasa sangat sederhana dan sesuai usia PAUD, ilustrasi cerah dan ramah anak (prompt ilustrasi dalam Bahasa Inggris, tanpa teks di dalam gambar), lagu mudah dinyanyikan dengan gerakan yang aman, dan aktivitas memakai bahan sederhana yang ada di sekitar. Sertakan tujuan perkembangan anak yang dituju untuk tiap komponen."},
+{id:"cbt",icon:"💻",title:"CBT Prompter",desc:"Buat prompt aplikasi ujian online dengan 2 pilihan backend.",bullets:["3 jenis: ulangan kelas, tryout, latihan mandiri","2 paket backend: GitHub+Sheets atau Cloudflare+D1","Token, acak soal/opsi, timer, PIN guru, rekap nilai"],vlabel:"Paket backend",variants:["GitHub + Google Sheets","Cloudflare + D1","Tanpa backend (satu file, nilai di perangkat)"],body:"Buatkan prompt aplikasi ujian online (CBT) yang lengkap dan bisa dibangun oleh pemula. Aplikasi harus memiliki: token ujian, pengacakan soal dan opsi jawaban, timer, PIN guru untuk pengaturan, halaman hasil dan rekap nilai, serta perlindungan sederhana dari kecurangan (misalnya soal tidak bisa disalin begitu saja). Sertakan panduan deploy langkah-demi-langkah yang jelas untuk pemula, sesuai paket backend yang dipilih, struktur file yang dibutuhkan, dan cara guru memasukkan soal dan melihat rekap nilai."},
+{id:"konteks",icon:"🔍",title:"Konteks Prompter",desc:"Buat prompt tabel Identifikasi Konteks (LK 6.1): konteks sebagai alat berpikir, bukan tempelan.",bullets:["4 jenis konteks: ilmiah, data, sosial, budaya lokal","Indikator ala contoh: Berpikir & Berperilaku","Kognisi minimal C4–C6, anti konteks tempelan"],vlabel:"Jenis konteks",variants:["Ilmiah","Data","Sosial","Budaya lokal"],body:"Buatkan tabel Identifikasi Konteks (LK 6.1) yang memakai konteks sebagai alat berpikir, bukan tempelan. Untuk setiap konteks, tuliskan: konteksnya, masalah atau pertanyaan pemantiknya, indikator Berpikir dan Berperilaku yang dituju, serta aktivitas murid yang menuntut kognisi minimal C4–C6 (menganalisis, mengevaluasi, mencipta). Konteks harus benar-benar dipakai untuk bernalar — bila konteksnya diganti, tugasnya harus ikut berubah. Hindari konteks yang hanya menjadi pembungkus soal hitungan biasa."},
+{id:"matriks",icon:"🗺️",title:"Matriks Prompter",desc:"Buat prompt Matriks Pembelajaran (LK 6.2): N konteks menjadi N baris matriks.",bullets:["N konteks jadi N baris matriks","KKTP ber-KKO HOTS (C4–C6)","Sintaks model: 5E, PBL, PJBL, Discovery, Inkuiri, STEM"],vlabel:"Sintaks / model",variants:["5E","PBL","PjBL","Discovery Learning","Inkuiri","STEM"],body:"Buatkan Matriks Pembelajaran (LK 6.2) dengan aturan: N konteks menjadi N baris matriks — setiap baris adalah satu konteks yang dikembangkan penuh. Setiap baris memuat: konteks, KKTP dengan kata kerja operasional HOTS (C4–C6), sintaks model yang dipilih, media konkret dan alat nyata dari lingkungan, serta aktivitas murid. Pastikan keterkaitan antar kolom dalam satu baris masuk akal dan bisa dilaksanakan, bukan sekadar tabel yang terisi."},
+{id:"bahanlk63",icon:"📑",title:"Bahan Ajar (LK 6.3)",desc:"Buat prompt bahan ajar per pertemuan dari matriks: N baris matriks menjadi N bahan ajar.",bullets:["Template LK 6.3: Pemantik, Peta Pikiran, Sajian Integratif","Materi Dasar → Relasional → Extended Abstract","Langkah 3 dari 3 rantai LK 6"],vlabel:"Sumber bahan",variants:["Dari satu baris matriks","Dari satu konteks","Satu pertemuan mandiri"],body:"Buatkan bahan ajar per pertemuan dari matriks (LK 6.3) dengan template: Pemantik, Peta Pikiran, Sajian Integratif, lalu materi berjenjang Materi Dasar → Relasional → Extended Abstract, Eksplorasi 1 dan Eksplorasi 2, Tantangan Kreatif, dan Refleksi Karakter. Ini adalah langkah ke-3 dari rantai LK 6: satu baris matriks menjadi satu bahan ajar yang utuh, dengan konteks yang sama dipakai secara konsisten dari pemantik sampai tantangan. Jangan mencampur konteks dari baris lain."}
+];
+let current=null;
+function el(id){return document.getElementById(id)}
+function renderChecks(){
+el("dimensi").innerHTML=DIMENSI.map((d,i)=>`<label><input type="checkbox" class="dim" value="${d}"> ${d}</label>`).join("");
+el("syarat").innerHTML=SYARAT.map((s,i)=>`<label><input type="checkbox" class="syr" value="${s}" ${i<2?"checked":""}> ${s}</label>`).join("");
+}
+function renderCards(list){
+el("cards").innerHTML=list.map(t=>`<article class="card"><div class="icon">${t.icon}</div><h3>${t.title}</h3><p>${t.desc}</p><ul>${t.bullets.map(b=>`<li>${b}</li>`).join("")}</ul><button class="btn" onclick="openTool('${t.id}')">Buka ${t.title.replace(" Prompter","")} Prompter →</button></article>`).join("");
+el("resultInfo").textContent=list.length+" prompter ditemukan. Klik satu kartu, isi identitas pembelajaran, lalu buat promptnya.";
+}
+function filterCards(){
+const q=el("search").value.toLowerCase();
+renderCards(TOOLS.filter(t=>(t.title+" "+t.desc+" "+t.bullets.join(" ")).toLowerCase().includes(q)));
+}
+function showView(v){
+["home","gen","library"].forEach(x=>el("view-"+x).classList.toggle("hidden",x!==v));
+if(v==="library")renderLibrary(); if(v==="home")window.scrollTo(0,0);
+}
+function openTool(id){
+current=TOOLS.find(t=>t.id===id);
+el("gIcon").textContent=current.icon; el("gTitle").textContent=current.title; el("gDesc").textContent=current.desc;
+el("vLabel").textContent=current.vlabel+" *";
+el("fVarian").innerHTML=current.variants.map(v=>`<option>${v}</option>`).join("");
+showView("gen"); window.scrollTo(0,0);
+}
+function clearForm(){["fGuru","fKelas","fFase","fMapel","fMateri","fJudul","fTP","fKarakter","fJumlah","fWaktu","fCatatan","output"].forEach(i=>el(i).value=""); el("copyMsg").textContent="";}
+function checked(cls){return [...document.querySelectorAll("."+cls+":checked")].map(c=>c.value)}
+function generate(){
+if(!el("fMapel").value.trim()||!el("fMateri").value.trim()){alert("Isi dulu Mata pelajaran dan Materi pokok.");return}
+const tp=el("fTP").value.trim().split("\n").map(s=>s.trim()).filter(Boolean);
+const dim=checked("dim"), syr=checked("syr");
+let p=`Buatkan ${current.title.replace(" Prompter","").toLowerCase()} untuk pembelajaran berikut. Ikuti semua identitas, jenis, dan syarat di bawah ini dengan tepat.\n\n`;
+p+=`IDENTITAS PEMBELAJARAN\n- Nama guru: ${el("fGuru").value.trim()||"(tidak disebutkan)"}\n- Jenjang: ${el("fJenjang").value}${el("fKelas").value.trim()?`, Kelas ${el("fKelas").value.trim()}`:""}${el("fFase").value.trim()?`, Fase ${el("fFase").value.trim()}`:""}\n- Mata pelajaran: ${el("fMapel").value.trim()}\n- Materi pokok: ${el("fMateri").value.trim()}\n- Judul: ${el("fJudul").value.trim()||"(buatkan judul yang menarik dan sesuai materi)"}\n${el("fWaktu").value.trim()?`- Alokasi waktu: ${el("fWaktu").value.trim()}\n`:""}`;
+p+=`- ${current.vlabel}: ${el("fVarian").value}\n${el("fJumlah").value.trim()?`- Jumlah: ${el("fJumlah").value.trim()}\n`:""}`;
+p+=`${tp.length?`\nTUJUAN PEMBELAJARAN (TP)\n${tp.map((t,i)=>`${i+1}. ${t}`).join("\n")}\n`:"\n(Pilihkan TP yang sesuai dari CP/ATP untuk materi ini.)\n"}`;
+if(el("fKarakter").value.trim())p+=`\nKARAKTERISTIK PESERTA DIDIK\n${el("fKarakter").value.trim()}\n`;
+if(el("fCatatan").value.trim())p+=`\nTEMA / KONTEKS / CATATAN KHUSUS\n${el("fCatatan").value.trim()}\n`;
+if(dim.length)p+=`\nDIMENSI PROFIL LULUSAN YANG HARUS DIUPAYAKAN\n${dim.map(d=>`- ${d}: tuliskan cara mewujudkannya secara konkret dalam kegiatan, bukan sekadar menyebut namanya.`).join("\n")}\n`;
+p+=`\nPERINTAH UTAMA\n${current.body}\n`;
+if(syr.length)p+=`\nSYARAT WAJIB (mutlak, jangan dilanggar)\n${syr.map(s=>`- ${s}`).join("\n")}\n`;
+p+=`\nATURAN PENULISAN\n- Gunakan Bahasa Indonesia yang jelas, sesuai jenjang ${el("fJenjang").value}.\n- Sesuaikan bahasa, kedalaman materi, dan contoh dengan usia murid.\n- Jangan mengarang TP, data, atau fakta di luar yang diberikan.\n- Hasil harus rapi, lengkap, dan siap pakai tanpa perlu banyak penyuntingan.\n- Akhiri dengan daftar cek singkat agar guru bisa memverifikasi kualitas hasil sebelum dipakai.`;
+el("output").value=p; el("copyMsg").textContent="Prompt berhasil dibuat. Silakan salin atau simpan.";
+}
+async function copyPrompt(){
+const v=el("output").value.trim(); if(!v){alert("Buat prompt dulu.");return}
+try{await navigator.clipboard.writeText(v); el("copyMsg").textContent="✓ Prompt tersalin. Tinggal tempel (Ctrl+V) di AI pilihan Anda."}
+catch(e){el("output").select(); document.execCommand("copy"); el("copyMsg").textContent="✓ Prompt tersalin (cara cadangan)."}
+}
+function getLib(){try{return JSON.parse(localStorage.getItem("prompterGuruLibrary")||"[]")}catch(e){return[]}}
+function savePrompt(){
+const v=el("output").value.trim(); if(!v){alert("Buat prompt dulu.");return}
+const lib=getLib(); lib.unshift({tool:current.title,materi:el("fMateri").value.trim(),mapel:el("fMapel").value.trim(),date:new Date().toLocaleString("id-ID"),prompt:v});
+localStorage.setItem("prompterGuruLibrary",JSON.stringify(lib)); updateLibCount(); el("copyMsg").textContent="✓ Prompt tersimpan di Pustaka Saya.";
+}
+function updateLibCount(){el("libCount").textContent=getLib().length}
+function renderLibrary(){
+const lib=getLib();
+el("libList").innerHTML=lib.length?lib.map((x,i)=>`<div class="lib-item"><h4>${x.tool} — ${x.mapel||""} ${x.materi||""}</h4><p>${x.date}</p><div class="actions"><button class="btn small" onclick="loadLib(${i})">Buka Prompt</button><button class="btn secondary small" onclick="delLib(${i})">Hapus</button></div></div>`).join(""):"<p class='hint'>Belum ada prompt tersimpan. Buat prompt dari salah satu prompter, lalu tekan “Simpan ke Pustaka”.</p>";
+}
+function loadLib(i){const x=getLib()[i]; if(!x)return; const t=TOOLS.find(t=>t.title===x.tool); if(t)openTool(t.id); el("output").value=x.prompt; el("copyMsg").textContent="Prompt dari pustaka dimuat. Anda bisa menyalinnya lagi."}
+function delLib(i){const lib=getLib(); lib.splice(i,1); localStorage.setItem("prompterGuruLibrary",JSON.stringify(lib)); updateLibCount(); renderLibrary();}
+function sendAI(url){copyPrompt(); window.open(url,"_blank")}
+renderChecks(); renderCards(TOOLS); updateLibCount();
+</script>
+</body>
+</html>
